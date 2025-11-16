@@ -21,7 +21,11 @@ full architecture diagram:
 
 ### 🔹 Domain  
 This component contains entities and rules:
-- `Transaction`, `Income`, `Expense`, `Category`, `Budget`
+- `Transaction`
+- `Income`
+- `Expense`
+- `Category`
+- `Budget`
 
 ### 🔹 Core  
 This component contains application logic and use cases:
