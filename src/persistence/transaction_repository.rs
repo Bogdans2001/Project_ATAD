@@ -1,10 +1,12 @@
 use rusqlite::params;
 
-use crate::core::TransactionRepository;
 use crate::domain::{Transaction, TransactionKind};
 
 use super::connection_provider::SQLiteConnectionProvider;
 
+pub trait TransactionRepository {
+    fn insert(&self, tx: &Transaction) -> anyhow::Result<()>;
+}
 pub struct SQLiteTransactionRepository {
     provider: SQLiteConnectionProvider,
 }

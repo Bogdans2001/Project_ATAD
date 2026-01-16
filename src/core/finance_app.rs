@@ -1,12 +1,11 @@
 use chrono::NaiveDate;
 use crate::core::transaction_service::{
     TransactionService,
-    TransactionRepository,
     AddTransactionCommand,
     AddTransactionError,
 };
 use crate::domain::TransactionKind;
-
+use crate::persistence::transaction_repository::TransactionRepository;
 pub struct FinanceApp<R: TransactionRepository> {
     transaction_service: TransactionService<R>,
 }

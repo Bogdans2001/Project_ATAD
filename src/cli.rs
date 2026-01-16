@@ -2,8 +2,8 @@ use chrono::NaiveDate;
 use clap::{Parser, Subcommand};
 
 use crate::core::finance_app::FinanceApp;
-use crate::core::transaction_service::TransactionRepository;
 use crate::core::transaction_service::AddTransactionError;
+use crate::persistence::transaction_repository::TransactionRepository;
 
 #[derive(Parser)]
 #[command(name = "pfm")]

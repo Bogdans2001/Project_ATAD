@@ -1,9 +1,8 @@
 use chrono::NaiveDate;
 
 use crate::domain::{Transaction, TransactionError, TransactionKind};
-pub trait TransactionRepository {
-    fn insert(&self, tx: &Transaction) -> anyhow::Result<()>;
-}
+use crate::persistence::transaction_repository::TransactionRepository;
+
 
 pub struct AddTransactionCommand {
     pub date: NaiveDate,
