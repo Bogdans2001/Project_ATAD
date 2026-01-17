@@ -31,6 +31,10 @@ enum Commands {
         #[arg(long)] date: Option<String>,   
         #[arg(long)] limit: Option<i64>,
     },
+
+    Report {
+        #[arg(long)] property: String,
+    }
 }
 
 pub fn run<R>(app: FinanceApp<R>) -> anyhow::Result<()>
@@ -40,13 +44,7 @@ where
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Add {
-            kind,
-            amount,
-            category_id,
-            date,
-            description,
-        } => {
+        Commands::Add {kind, amount, category_id, date, description,} => {
             let date = NaiveDate::parse_from_str(&date, "%Y-%m-%d")?;
             match app.add(kind, date, amount, category_id, description) {
                 Ok(()) => println!("Income added."),
@@ -113,6 +111,19 @@ where
                     );
                 }
             }
+        }
+
+        Commands::Report {property} => {
+            let property = match property.as_str() {
+                "monthly" => "monthly",
+                "category" => "category",
+                _ => {
+                    eprintln!("Invalid --propety. Use monthly|category.");
+                    return Ok(());
+                }
+            };
+            app.report(property.to_string())?;
+
         }
     }
 

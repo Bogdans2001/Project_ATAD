@@ -1,7 +1,7 @@
 use chrono::NaiveDate;
 
 use crate::domain::{Transaction, TransactionError, TransactionKind};
-use crate::persistence::transaction_repository::{TransactionRepository, TransactionSearchFilter};
+use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter};
 
 
 pub struct AddTransactionCommand {
@@ -51,10 +51,16 @@ impl<R: TransactionRepository> TransactionService<R> {
             .insert(&tx)
             .map_err(AddTransactionError::Persistence)
     }
-}
 
-impl<R: TransactionRepository> TransactionService<R> {
     pub fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>> {
         self.repo.search(filter)
     }
+
+    pub fn monthly_report(&self, property:String) -> anyhow::Result<Vec<MonthlyReport>> {
+        match property.as_str(){
+            "monthly" => self.repo.monthly_report(),
+            _ => self.repo.monthly_report(),
+        }
+    }
 }
+

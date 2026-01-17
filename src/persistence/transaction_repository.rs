@@ -3,9 +3,16 @@ use chrono::NaiveDate;
 use crate::domain::{Transaction, TransactionKind};
 use super::connection_provider::SQLiteConnectionProvider;
 
+#[derive(Debug)]
+pub struct MonthlyReport {
+    pub month: String, 
+    pub income: f64,
+    pub expense: f64,
+}
 pub trait TransactionRepository {
     fn insert(&self, tx: &Transaction) -> anyhow::Result<()>;
     fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>>;
+    fn monthly_report(&self) -> anyhow::Result<Vec<MonthlyReport>>;
 }
 
 pub struct TransactionSearchFilter {
@@ -116,13 +123,33 @@ impl TransactionRepository for SQLiteTransactionRepository {
             Ok(Transaction::from_db(id, date, amount, kind, category_id, description))
         }
     )?;
-
-
     let mut out = vec![];
     for r in rows {
             out.push(r?);
     }
     Ok(out)
+    }
+
+    fn monthly_report(&self) -> anyhow::Result<Vec<MonthlyReport>>{
+        let conn = self.provider.conn();
+        let mut stmt = conn.prepare("SELECT substr(date, 1, 7) AS month,
+            SUM(CASE WHEN kind = 'income' THEN amount ELSE 0 END) AS income, SUM(CASE WHEN kind = 'expense' THEN amount ELSE 0 END) AS expense
+            FROM transactions GROUP BY month ORDER BY month",
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok(MonthlyReport {
+                month: row.get(0)?,
+                income: row.get(1)?,
+                expense: row.get(2)?,
+            })
+        })?;
+
+        let mut out = vec![];
+        for r in rows {
+            out.push(r?);
+        }
+        Ok(out)
     }
 
 }
