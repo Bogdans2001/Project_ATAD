@@ -4,7 +4,7 @@ use crate::core::transaction_service::{
     AddTransactionCommand,
     AddTransactionError,
 };
-use crate::domain::{Transaction,TransactionKind};
+use crate::domain::Transaction;
 use crate::persistence::transaction_repository::{TransactionRepository, TransactionSearchFilter};
 pub struct FinanceApp<R: TransactionRepository> {
     transaction_service: TransactionService<R>,
@@ -15,8 +15,9 @@ impl<R: TransactionRepository> FinanceApp<R> {
         Self { transaction_service }
     }
 
-    pub fn add_income(
+    pub fn add(
         &self,
+        kind: String,
         date: NaiveDate,
         amount: f64,
         category_id: i64,
@@ -25,25 +26,7 @@ impl<R: TransactionRepository> FinanceApp<R> {
         let cmd = AddTransactionCommand {
             date,
             amount,
-            kind: TransactionKind::Income,
-            category_id,
-            description,
-        };
-
-        self.transaction_service.add_transaction(cmd)
-    }
-
-    pub fn add_expense(
-        &self,
-        date: NaiveDate,
-        amount: f64,
-        category_id: i64,
-        description: String,
-    ) -> Result<(), AddTransactionError> {
-        let cmd = AddTransactionCommand {
-            date,
-            amount,
-            kind: TransactionKind::Expense,
+            kind: kind,
             category_id,
             description,
         };

@@ -21,6 +21,7 @@ pub struct Transaction {
 pub enum TransactionError {
     AmountMustBePositive,
     EmptyDescription,
+    ExpenseIncomeNotFound,
 }
 
 impl Transaction {

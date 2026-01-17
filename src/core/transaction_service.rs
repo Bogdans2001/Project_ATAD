@@ -7,7 +7,7 @@ use crate::persistence::transaction_repository::{TransactionRepository, Transact
 pub struct AddTransactionCommand {
     pub date: NaiveDate,
     pub amount: f64,
-    pub kind: TransactionKind,
+    pub kind: String,
     pub category_id: i64,
     pub description: String,
 }
@@ -34,10 +34,15 @@ impl<R: TransactionRepository> TransactionService<R> {
     }
 
     pub fn add_transaction(&self, cmd: AddTransactionCommand) -> Result<(), AddTransactionError> {
+        let transaction_kind = match cmd.kind.as_str() {
+            "expense" => Ok(TransactionKind::Expense),
+            "income" => Ok(TransactionKind::Income),
+            _ => Err(AddTransactionError::Domain(TransactionError::ExpenseIncomeNotFound)),
+            }?;
         let tx = Transaction::new(
             cmd.date,
             cmd.amount,
-            cmd.kind,
+            transaction_kind,
             cmd.category_id,
             cmd.description,
         )?;
