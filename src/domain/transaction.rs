@@ -47,4 +47,18 @@ impl Transaction {
             description,
         })
     }
+
+    pub fn from_db(
+        id_str: String,
+        date: NaiveDate,
+        amount: f64,
+        kind: TransactionKind,
+        category_id: i64,
+        description: String,
+    ) -> Self {
+        let id = Uuid::parse_str(&id_str)
+            .expect("Invalid UUID in database");
+        Self { id, date, amount, kind, category_id, description }
+    }
+
 }

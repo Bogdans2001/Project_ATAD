@@ -1,12 +1,12 @@
 use chrono::NaiveDate;
 use clap::{Parser, Subcommand};
-
+use crate::domain::TransactionKind;
 use crate::core::finance_app::FinanceApp;
 use crate::core::transaction_service::AddTransactionError;
-use crate::persistence::transaction_repository::TransactionRepository;
+use crate::persistence::transaction_repository::{TransactionRepository,TransactionSearchFilter};
 
 #[derive(Parser)]
-#[command(name = "pfm")]
+#[command(name = "finance_manager")]
 #[command(about = "Personal finance manager", long_about = None)]
 pub struct Cli {
     #[command(subcommand)]
@@ -26,6 +26,15 @@ enum Commands {
         #[arg(long)] category_id: i64,
         #[arg(long)] date: String,
         #[arg(long)] description: String,
+    },
+    Search {
+        #[arg(long)] description: Option<String>,
+        #[arg(long)] kind: Option<String>,
+        #[arg(long)] category_id: Option<i64>,
+        #[arg(long)] from: Option<String>, 
+        #[arg(long)] to: Option<String>,
+        #[arg(long)] date: Option<String>,   
+        #[arg(long)] limit: Option<i64>,
     },
 }
 
@@ -68,7 +77,62 @@ where
                 Err(e) => eprintln!("Failed to add expense: {e:?}"),
             }
         }
+
+        Commands::Search { description, kind, category_id, from, to, date, limit } => {
+            let kind = match kind.as_deref() {
+                Some("income") => Some(TransactionKind::Income),
+                Some("expense") => Some(TransactionKind::Expense),
+                Some(_) => {
+                    eprintln!("Invalid --kind. Use income|expense.");
+                    return Ok(());
+                }
+                None => None,
+            };
+
+            let from = match from {
+                Some(s) => Some(NaiveDate::parse_from_str(&s, "%Y-%m-%d")?),
+                None => None,
+            };
+
+            let to = match to {
+                Some(s) => Some(NaiveDate::parse_from_str(&s, "%Y-%m-%d")?),
+                None => None,
+            };
+
+            let date = match date {
+                Some(s) => Some(NaiveDate::parse_from_str(&s, "%Y-%m-%d")?),
+                None => None,
+            };
+
+            let filter = TransactionSearchFilter {
+                description,
+                from,
+                to,
+                date,
+                kind,
+                category_id,
+                limit,
+            };
+
+            let results = app.search_transactions(filter)?;
+
+            if results.is_empty() {
+                println!("No transactions found.");
+            } else {
+                for t in results {
+                    println!(
+                        "{} | {} | {} | {} | {}",
+                        t.date,
+                        match t.kind { TransactionKind::Income => "income", TransactionKind::Expense => "expense" },
+                        t.amount,
+                        t.category_id,
+                        t.description
+                    );
+                }
+            }
+        }
     }
 
     Ok(())
 }
+

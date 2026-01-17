@@ -4,8 +4,8 @@ use crate::core::transaction_service::{
     AddTransactionCommand,
     AddTransactionError,
 };
-use crate::domain::TransactionKind;
-use crate::persistence::transaction_repository::TransactionRepository;
+use crate::domain::{Transaction,TransactionKind};
+use crate::persistence::transaction_repository::{TransactionRepository, TransactionSearchFilter};
 pub struct FinanceApp<R: TransactionRepository> {
     transaction_service: TransactionService<R>,
 }
@@ -49,5 +49,11 @@ impl<R: TransactionRepository> FinanceApp<R> {
         };
 
         self.transaction_service.add_transaction(cmd)
+    }
+}
+
+impl<R: TransactionRepository> FinanceApp<R> {
+    pub fn search_transactions(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>> {
+        Ok(self.transaction_service.search(filter)?)
     }
 }
