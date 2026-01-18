@@ -1,7 +1,7 @@
 use chrono::NaiveDate;
 use anyhow::anyhow;
 
-use crate::domain::{Transaction, TransactionError, TransactionKind};
+use crate::domain::{Transaction, TransactionError, TransactionKind,Category};
 use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter, CategoryReport};
 use crate::importers::read_csv_as_arrays;
 
@@ -89,7 +89,14 @@ impl<R: TransactionRepository> TransactionService<R> {
                 };
                 let category_id:i64=row[3].parse().map_err(|_| anyhow!("Invalid category id"))?;
                 let description = row[4].clone();
-                let transaction = Transaction::new( date, amount, kind, category_id, description).map_err(|_| anyhow!("Invalid transaction"))?;
+
+                let local_category_id = match category_id {
+                    0 => Category::build_category(&description).unwrap_or(1),
+                    1..12 => category_id,
+                    _ => return Err(anyhow!("Invalid category"))
+                };
+
+                let transaction = Transaction::new( date, amount, kind, local_category_id, description).map_err(|_| anyhow!("Invalid transaction"))?;
                 self.repo.insert(&transaction)?;
             }
         }

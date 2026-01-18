@@ -146,7 +146,7 @@ where
 
         Commands::Import {option, path} => {
             app.import(option,path)?;
-            println!("Budget added!");
+            println!("Import added!");
         }
 
 

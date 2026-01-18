@@ -1,9 +1,10 @@
 use csv::Reader;
 use chrono::NaiveDate;
 use anyhow::anyhow;
+use std::path::Path;
 
 fn validate_row(row: &Vec<String>) -> anyhow::Result<()> {
-    if row.len() != 4 {
+    if row.len() != 5 {
         return Err(anyhow!("Invalid number of columns".to_string()));
     }
     if !NaiveDate::parse_from_str(&row[0], "%Y-%m-%d").is_ok() {
@@ -26,6 +27,9 @@ fn validate_row(row: &Vec<String>) -> anyhow::Result<()> {
 
 
 pub fn read_csv_as_arrays(csv_path: &str) -> anyhow::Result<Vec<Vec<String>>> {
+    if !Path::new(csv_path).exists() {
+        return Err(anyhow!("Wrong path: {}", csv_path));
+    }
     let mut rdr = Reader::from_path(csv_path)?;
     let mut rows = Vec::new();
 
@@ -40,7 +44,6 @@ pub fn read_csv_as_arrays(csv_path: &str) -> anyhow::Result<Vec<Vec<String>>> {
                 rows.push(row);
             }
             Err(e) =>{
-                println!("{}",e);
                 return Err(e);
             }
         }
