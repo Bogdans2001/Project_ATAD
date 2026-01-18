@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 
+use crate::core::category_service::build_category;
 use crate::domain::{Transaction, TransactionError, TransactionKind};
 use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter};
 
@@ -39,11 +40,17 @@ impl<R: TransactionRepository> TransactionService<R> {
             "income" => Ok(TransactionKind::Income),
             _ => Err(AddTransactionError::Domain(TransactionError::ExpenseIncomeNotFound)),
             }?;
+        let local_category_id = match cmd.category_id {
+            0 => Ok(build_category(&cmd.description).unwrap_or(1)),
+            1..12 => Ok(cmd.category_id),
+            _ => Err(AddTransactionError::Domain(TransactionError::CategoryIdNotFound)),
+            }?;
+
         let tx = Transaction::new(
             cmd.date,
             cmd.amount,
             transaction_kind,
-            cmd.category_id,
+            local_category_id,
             cmd.description,
         )?;
 

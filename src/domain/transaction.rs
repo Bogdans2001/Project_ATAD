@@ -22,6 +22,7 @@ pub enum TransactionError {
     AmountMustBePositive,
     EmptyDescription,
     ExpenseIncomeNotFound,
+    CategoryIdNotFound,
 }
 
 impl Transaction {

@@ -47,13 +47,13 @@ where
         Commands::Add {kind, amount, category_id, date, description,} => {
             let date = NaiveDate::parse_from_str(&date, "%Y-%m-%d")?;
             match app.add(kind, date, amount, category_id, description) {
-                Ok(()) => println!("Income added."),
+                Ok(()) => println!("Income|Expense added."),
                 Err(e) => match e {
                     AddTransactionError::Domain(domain_err) => {
-                        eprintln!("Domain error when adding income: {domain_err:?}");
+                        eprintln!("Domain error when adding income|expense: {domain_err:?}");
                     }
                     AddTransactionError::Persistence(persist_err) => {
-                        eprintln!("Persistence error when adding income: {persist_err:?}");
+                        eprintln!("Persistence error when adding income|expense: {persist_err:?}");
                     }
                 },
             }

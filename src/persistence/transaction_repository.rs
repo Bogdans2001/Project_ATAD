@@ -53,7 +53,6 @@ impl TransactionRepository for SQLiteTransactionRepository {
             sql.push_str(" AND description LIKE ?");
             p.push(Box::new(format!("%{}%", description)));
         }
-
         if let Some(kind) = &filter.kind {
             sql.push_str(" AND kind = ?");
             let k = match kind {
@@ -62,17 +61,14 @@ impl TransactionRepository for SQLiteTransactionRepository {
             };
             p.push(Box::new(k.to_string()));
         }
-
         if let Some(category_id) = filter.category_id {
             sql.push_str(" AND category_id = ?");
             p.push(Box::new(category_id));
         }
-
         if let Some(from) = filter.from {
             sql.push_str(" AND date >= ?");
             p.push(Box::new(from.to_string()));
         }
-
         if let Some(to) = filter.to {
             sql.push_str(" AND date <= ?");
             p.push(Box::new(to.to_string()));
@@ -81,17 +77,13 @@ impl TransactionRepository for SQLiteTransactionRepository {
             sql.push_str(" AND date = ?");
             p.push(Box::new(date.to_string()));
         }
-
         sql.push_str(" ORDER BY date DESC");
-
         if let Some(limit) = filter.limit {
             sql.push_str(" LIMIT ?");
             p.push(Box::new(limit));
         }
-
         let conn = self.provider.conn();
         let mut stmt = conn.prepare(&sql)?;
-
         let rows = stmt.query_map(params_from_iter(p.iter().map(|x| x.as_ref())), |row| {
             let id: String = row.get(0)?;
             let date_str: String = row.get(1)?;
@@ -122,12 +114,12 @@ impl TransactionRepository for SQLiteTransactionRepository {
 
             Ok(Transaction::from_db(id, date, amount, kind, category_id, description))
         }
-    )?;
-    let mut out = vec![];
-    for r in rows {
-            out.push(r?);
-    }
-    Ok(out)
+        )?;
+        let mut out = vec![];
+        for r in rows {
+                out.push(r?);
+        }
+        Ok(out)
     }
 
     fn monthly_report(&self) -> anyhow::Result<Vec<MonthlyReport>>{
