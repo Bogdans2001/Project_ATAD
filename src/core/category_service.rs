@@ -3,7 +3,7 @@ use regex::Regex;
 pub fn build_category(description: &str) -> Option<i64> {
     let rules: [(&str, i64); 10] = [
         (r"(?i)\b(salary|payroll|wage|wages|bonus)\b", 2), 
-        (r"(?i)\b(lidl|kaufland|auchan|carrefour|mega|cora|shop|shopping)\b", 3),
+        (r"(?i)\b(lidl|kaufland|auchan|carrefour|mega|cora|shop|shopping|groceries)\b", 3),
         (r"(?i)\b(uber|bolt|taxi|bus|transport|plane|train|fuel|gasoline|diesel|petrol)\b", 4),   
         (r"(?i)\b(ikea|jysk|mobexpert|furniture|bed|table|chair|wardrobe)\b", 5),                   
         (r"(?i)\b(netflix|spotify|music|subscription|youtube)\b", 6),
