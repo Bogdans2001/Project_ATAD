@@ -9,10 +9,18 @@ pub struct MonthlyReport {
     pub income: f64,
     pub expense: f64,
 }
+
+pub struct CategoryReport{
+    pub name: String,
+    pub amount: f64,
+}
+
+
 pub trait TransactionRepository {
     fn insert(&self, tx: &Transaction) -> anyhow::Result<()>;
     fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>>;
     fn monthly_report(&self) -> anyhow::Result<Vec<MonthlyReport>>;
+    fn category_report(&self) -> anyhow::Result<Vec<CategoryReport>>;
 }
 
 pub struct TransactionSearchFilter {
@@ -134,6 +142,25 @@ impl TransactionRepository for SQLiteTransactionRepository {
                 month: row.get(0)?,
                 income: row.get(1)?,
                 expense: row.get(2)?,
+            })
+        })?;
+
+        let mut out = vec![];
+        for r in rows {
+            out.push(r?);
+        }
+        Ok(out)
+    }
+    fn category_report(&self) -> anyhow::Result<Vec<CategoryReport>>{
+        let conn = self.provider.conn();
+        let mut stmt = conn.prepare("SELECT c.name AS category_name, SUM(t.amount) AS total_amount FROM transactions t
+            JOIN categories c ON c.id = t.category_id GROUP BY c.id;",
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok(CategoryReport {
+                name: row.get(0)?,
+                amount: row.get(1)?,
             })
         })?;
 

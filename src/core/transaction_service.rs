@@ -1,8 +1,7 @@
 use chrono::NaiveDate;
 
-use crate::core::category_service::build_category;
-use crate::domain::{Transaction, TransactionError, TransactionKind};
-use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter};
+use crate::domain::{Transaction, TransactionError, TransactionKind, Category};
+use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter, CategoryReport};
 
 
 pub struct AddTransactionCommand {
@@ -17,6 +16,11 @@ pub struct AddTransactionCommand {
 pub enum AddTransactionError {
     Domain(TransactionError),
     Persistence(anyhow::Error),
+}
+
+pub enum ReportResult {
+    Monthly(Vec<MonthlyReport>),
+    Category(Vec<CategoryReport>),
 }
 
 impl From<TransactionError> for AddTransactionError {
@@ -41,7 +45,7 @@ impl<R: TransactionRepository> TransactionService<R> {
             _ => Err(AddTransactionError::Domain(TransactionError::ExpenseIncomeNotFound)),
             }?;
         let local_category_id = match cmd.category_id {
-            0 => Ok(build_category(&cmd.description).unwrap_or(1)),
+            0 => Ok(Category::build_category(&cmd.description).unwrap_or(1)),
             1..12 => Ok(cmd.category_id),
             _ => Err(AddTransactionError::Domain(TransactionError::CategoryIdNotFound)),
             }?;
@@ -63,11 +67,12 @@ impl<R: TransactionRepository> TransactionService<R> {
         self.repo.search(filter)
     }
 
-    pub fn monthly_report(&self, property:String) -> anyhow::Result<Vec<MonthlyReport>> {
-        match property.as_str(){
-            "monthly" => self.repo.monthly_report(),
-            _ => self.repo.monthly_report(),
-        }
+    pub fn report(&self, property:String) -> anyhow::Result<ReportResult> {
+        let result = match property.as_str(){
+            "monthly" => ReportResult::Monthly(self.repo.monthly_report()?),
+            _ => ReportResult::Category(self.repo.category_report()?),
+        };
+        Ok(result)
     }
 }
 

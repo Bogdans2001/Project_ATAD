@@ -5,3 +5,4 @@ pub mod income;
 pub mod transaction;
 
 pub use transaction::{Transaction, TransactionKind, TransactionError};
+pub use category::Category;
