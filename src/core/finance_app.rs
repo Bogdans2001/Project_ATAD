@@ -3,7 +3,7 @@ use crate::core::transaction_service::{
     AddTransactionCommand, AddTransactionError, ReportResult, TransactionService
 };
 use crate::core::budget_service::*;
-use crate::domain::{Transaction};
+use crate::domain::{Transaction,TransactionError, Category};
 use crate::persistence::transaction_repository::{TransactionRepository, TransactionSearchFilter};
 use crate::persistence::budget_repository::BudgetRepository;
 pub struct FinanceApp<TR, BR>
@@ -34,11 +34,35 @@ where
     }
 
     pub fn add(&self,kind: String, date: NaiveDate, amount: f64, category_id: i64, description: String,) -> Result<(), AddTransactionError> {
+
+        let local_category_id = match category_id {
+            0 => Ok(Category::build_category(&description).unwrap_or(1)),
+            1..12 => Ok(category_id),
+            _ => Err(AddTransactionError::Domain(TransactionError::CategoryIdNotFound)),
+            }?;
+        
+        if kind=="expense" {
+            let budget = self.budget_service.select(local_category_id,date, amount)
+                .map_err(|_| AddTransactionError::Domain(TransactionError::CategoryIdNotFound))?;
+            let mut expenses = self.transaction_service.monthly_expenses(date, local_category_id).
+                map_err(|_| AddTransactionError::Domain(TransactionError::CategoryIdNotFound))?;
+            
+            expenses = expenses + amount;
+
+            if budget==-1.0 {
+                println!("Budget not set!");
+            }
+
+            if budget<expenses && budget>=0.0 {
+                println!("Budget overrun!");
+            }
+        }
+
         let cmd = AddTransactionCommand {
             date,
             amount,
             kind: kind,
-            category_id,
+            category_id: local_category_id,
             description,
         };
 

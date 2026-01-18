@@ -36,12 +36,18 @@ impl BudgetRepository for SQLiteBudgetRepository{
         Ok(())
     }
     fn select(&self, budget: &Budget) -> anyhow::Result<f64> {
-        let age = self.provider.conn().query_row(
+
+        let count = self.select_count(budget)?;
+
+        if count == 0{
+            return Ok(-1.0);
+        }
+        let ammount = self.provider.conn().query_row(
             "SELECT amount FROM budgets WHERE category_id=?1 AND month=?2;",
             params![budget.category_id, budget.month],
             |row| row.get(0),
         )?;
-        Ok(age)
+        Ok(ammount)
     }
 
     fn select_count(&self, budget: &Budget) -> anyhow::Result<i64> {

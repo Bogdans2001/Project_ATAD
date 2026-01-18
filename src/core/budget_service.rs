@@ -1,3 +1,7 @@
+
+
+use chrono::NaiveDate;
+
 use crate::domain::{Budget, BudgetError};
 use crate::persistence::budget_repository::{BudgetRepository};
 
@@ -30,6 +34,17 @@ impl<R: BudgetRepository> BudgetService<R> {
             self.repo.update(&budget).map_err(|_| BudgetError::CategoryIdNotFound)?;
         }
         Ok(())
+    }
+
+    pub fn select(&self, category_id:i64, date:NaiveDate, amount:f64) -> Result<f64,BudgetError>{
+        let month = date.format("%Y-%m").to_string();
+        let budget = Budget::new(
+            category_id,
+            month,
+            amount,
+        )?;
+        let result = self.repo.select(&budget).map_err(|_| BudgetError::NoValidRows)?;
+        Ok(result)
     }
 
 

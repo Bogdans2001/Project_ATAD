@@ -21,6 +21,7 @@ pub trait TransactionRepository {
     fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>>;
     fn monthly_report(&self) -> anyhow::Result<Vec<MonthlyReport>>;
     fn category_report(&self) -> anyhow::Result<Vec<CategoryReport>>;
+    fn monthly_expenses(&self, date:NaiveDate, category_id:i64) -> anyhow::Result<f64>;
 }
 
 pub struct TransactionSearchFilter {
@@ -169,6 +170,27 @@ impl TransactionRepository for SQLiteTransactionRepository {
             out.push(r?);
         }
         Ok(out)
+    }
+
+    fn monthly_expenses(&self, date:NaiveDate, category_id:i64) -> anyhow::Result<f64> {
+        let month = date.format("%Y-%m").to_string();
+        let date1 = format!("{}-00",month);
+        let date2=  format!("{}-32",month);
+        let count = self.provider.conn().query_row("SELECT count(*) FROM transactions WHERE kind='expense' AND date>?1 AND date<?2 AND category_id=?3;",
+            params![date1, date2, category_id],
+            |row| row.get::<_,i64>(0),
+        )?;
+
+        if count == 0 {
+            return Ok(0.0);
+        }
+
+        let expenses = self.provider.conn().query_row("SELECT SUM(CASE WHEN kind = 'expense' THEN amount ELSE 0 END) AS expense FROM transactions 
+        WHERE date>?1 AND date<?2 AND category_id=?3;",
+            params![date1, date2, category_id],
+            |row| row.get(0),
+        )?;
+        Ok(expenses)
     }
 
 }

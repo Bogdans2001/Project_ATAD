@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use crate::domain::{Transaction, TransactionError, TransactionKind, Category};
+use crate::domain::{Transaction, TransactionError, TransactionKind};
 use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter, CategoryReport};
 
 
@@ -44,17 +44,12 @@ impl<R: TransactionRepository> TransactionService<R> {
             "income" => Ok(TransactionKind::Income),
             _ => Err(AddTransactionError::Domain(TransactionError::ExpenseIncomeNotFound)),
             }?;
-        let local_category_id = match cmd.category_id {
-            0 => Ok(Category::build_category(&cmd.description).unwrap_or(1)),
-            1..12 => Ok(cmd.category_id),
-            _ => Err(AddTransactionError::Domain(TransactionError::CategoryIdNotFound)),
-            }?;
 
         let tx = Transaction::new(
             cmd.date,
             cmd.amount,
             transaction_kind,
-            local_category_id,
+            cmd.category_id,
             cmd.description,
         )?;
 
@@ -65,6 +60,9 @@ impl<R: TransactionRepository> TransactionService<R> {
 
     pub fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>> {
         self.repo.search(filter)
+    }
+    pub fn monthly_expenses(&self, date:NaiveDate, category_id:i64) -> anyhow::Result<f64> {
+        self.repo.monthly_expenses(date,category_id)
     }
 
     pub fn report(&self, property:String) -> anyhow::Result<ReportResult> {
