@@ -11,3 +11,4 @@ rusqlite = { version = "0.31", features = ["bundled"] }
 clap = { version = "4", features = ["derive"] }
 regex = "1"
 thiserror = "1"
+csv="1"

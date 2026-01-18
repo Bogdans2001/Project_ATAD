@@ -41,6 +41,11 @@ enum Commands {
         #[arg(long)] category_id: i64,
         #[arg(long)] month: String,
         #[arg(long)] amount: f64,
+    },
+
+    Import {
+        #[arg(long)] option: String,
+        #[arg(long)] path: String,
     }
 }
 
@@ -136,6 +141,11 @@ where
 
         Commands::Budget {category_id, month, amount} => {
             app.add_budget(category_id,month,amount)?;
+            println!("Budget added!");
+        }
+
+        Commands::Import {option, path} => {
+            app.import(option,path)?;
             println!("Budget added!");
         }
 

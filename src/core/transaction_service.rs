@@ -1,7 +1,9 @@
 use chrono::NaiveDate;
+use anyhow::anyhow;
 
 use crate::domain::{Transaction, TransactionError, TransactionKind};
 use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter, CategoryReport};
+use crate::importers::read_csv_as_arrays;
 
 
 pub struct AddTransactionCommand {
@@ -71,6 +73,27 @@ impl<R: TransactionRepository> TransactionService<R> {
             _ => ReportResult::Category(self.repo.category_report()?),
         };
         Ok(result)
+    }
+
+    pub fn import(&self, option:String, path:String) -> anyhow::Result<()> {
+        
+        if option == "csv" {
+            let rows = read_csv_as_arrays(&path)?;
+            for row in rows{
+                let date = NaiveDate::parse_from_str(&row[0], "%Y-%m-%d").map_err(|_| anyhow!("Invalid date"))?;
+                let amount:f64=row[1].parse().map_err(|_| anyhow!("Invalid amount"))?;
+                let kind=match row[2].as_str(){
+                    "expense"=>TransactionKind::Expense,
+                    "income"=>TransactionKind::Income,
+                    _=>return Err(anyhow!("Invalid kind")),
+                };
+                let category_id:i64=row[3].parse().map_err(|_| anyhow!("Invalid category id"))?;
+                let description = row[4].clone();
+                let transaction = Transaction::new( date, amount, kind, category_id, description).map_err(|_| anyhow!("Invalid transaction"))?;
+                self.repo.insert(&transaction)?;
+            }
+        }
+        Ok(())
     }
 }
 

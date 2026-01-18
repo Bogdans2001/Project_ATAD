@@ -115,5 +115,10 @@ where
         Ok(())
     }
 
+    pub fn import(&self, option:String, path:String) ->anyhow::Result<()>{
+        self.transaction_service.import(option, path)?;
+        Ok(())
+    }
+
 }
 

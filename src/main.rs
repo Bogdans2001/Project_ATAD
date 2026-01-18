@@ -2,6 +2,7 @@ mod domain;
 mod core;
 mod persistence;
 mod cli;
+mod importers;
 
 use core::transaction_service::TransactionService;
 use core::budget_service::BudgetService;
