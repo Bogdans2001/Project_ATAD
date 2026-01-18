@@ -136,6 +136,7 @@ where
 
         Commands::Budget {category_id, month, amount} => {
             app.add_budget(category_id,month,amount)?;
+            println!("Budget added!");
         }
 
 

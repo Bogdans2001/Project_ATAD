@@ -31,7 +31,7 @@ impl BudgetRepository for SQLiteBudgetRepository{
     fn update(&self, budget: &Budget) -> anyhow::Result<()> {
         self.provider.conn().execute(
             "UPDATE budgets SET amount=?1 WHERE category_id=?2 AND month=?3;",
-            params![budget.category_id, budget.month, budget.amount],
+            params![budget.amount, budget.category_id, budget.month],
         )?;
         Ok(())
     }
