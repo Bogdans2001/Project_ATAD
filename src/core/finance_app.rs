@@ -2,11 +2,19 @@ use chrono::NaiveDate;
 use crate::core::transaction_service::{
     AddTransactionCommand, AddTransactionError, ReportResult, TransactionService
 };
-use crate::domain::Transaction;
+use crate::core::budget_service::*;
+use crate::domain::{Transaction};
 use crate::persistence::transaction_repository::{TransactionRepository, TransactionSearchFilter};
-pub struct FinanceApp<R: TransactionRepository> {
-    transaction_service: TransactionService<R>,
+use crate::persistence::budget_repository::BudgetRepository;
+pub struct FinanceApp<TR, BR>
+where
+    TR: TransactionRepository,
+    BR: BudgetRepository,
+{
+    transaction_service: TransactionService<TR>,
+    budget_service: BudgetService<BR>,
 }
+
 
 fn bar(value: f64, max: f64) -> String {
         let width = 30;
@@ -16,9 +24,13 @@ fn bar(value: f64, max: f64) -> String {
         format!("{}{}","█".repeat(n), " ".repeat(empty))
     }
 
-impl<R: TransactionRepository> FinanceApp<R> {
-    pub fn new(transaction_service: TransactionService<R>) -> Self {
-        Self { transaction_service }
+impl<TR, BR> FinanceApp<TR, BR>
+where
+    TR: TransactionRepository,
+    BR: BudgetRepository,
+{
+    pub fn new(transaction_service: TransactionService<TR>, budget_service: BudgetService<BR>) -> Self {
+        Self { transaction_service, budget_service, }
     }
 
     pub fn add(&self,kind: String, date: NaiveDate, amount: f64, category_id: i64, description: String,) -> Result<(), AddTransactionError> {
@@ -71,6 +83,11 @@ impl<R: TransactionRepository> FinanceApp<R> {
                 }
             }
         }
+        Ok(())
+    }
+
+    pub fn add_budget(&self, category_id:i64, month:String, amount:f64) ->anyhow::Result<()>{
+        self.budget_service.insert_or_update(category_id, month, amount)?;
         Ok(())
     }
 

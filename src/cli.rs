@@ -4,6 +4,7 @@ use crate::domain::TransactionKind;
 use crate::core::finance_app::FinanceApp;
 use crate::core::transaction_service::AddTransactionError;
 use crate::persistence::transaction_repository::{TransactionRepository,TransactionSearchFilter};
+use crate::persistence::budget_repository::BudgetRepository;
 
 #[derive(Parser)]
 #[command(name = "finance_manager")]
@@ -34,12 +35,19 @@ enum Commands {
 
     Report {
         #[arg(long)] property: String,
+    },
+
+    Budget {
+        #[arg(long)] category_id: i64,
+        #[arg(long)] month: String,
+        #[arg(long)] amount: f64,
     }
 }
 
-pub fn run<R>(app: FinanceApp<R>) -> anyhow::Result<()>
+pub fn run<TR, BR>(app: FinanceApp<TR, BR>) -> anyhow::Result<()>
 where
-    R: TransactionRepository,
+    TR: TransactionRepository,
+    BR: BudgetRepository,
 {
     let cli = Cli::parse();
 
@@ -125,7 +133,15 @@ where
             app.report(property.to_string())?;
 
         }
+
+        Commands::Budget {category_id, month, amount} => {
+            app.add_budget(category_id,month,amount)?;
+        }
+
+
     }
+
+    
 
     Ok(())
 }

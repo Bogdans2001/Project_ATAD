@@ -4,13 +4,17 @@ mod persistence;
 mod cli;
 
 use core::transaction_service::TransactionService;
+use core::budget_service::BudgetService;
 use core::finance_app::FinanceApp;
-use persistence::{SQLiteConnectionProvider, SQLiteTransactionRepository};
+use persistence::{SQLiteConnectionProvider, SQLiteTransactionRepository, SQLiteBudgetRepository};
 
 fn main() -> anyhow::Result<()> {
-    let provider = SQLiteConnectionProvider::new("data/finance.db")?;
-    let tx_repo = SQLiteTransactionRepository::new(provider);
-    let tx_service = TransactionService::new(tx_repo);
-    let app = FinanceApp::new(tx_service);
+    let transaction_provider = SQLiteConnectionProvider::new("data/finance.db")?;
+    let budget_provider = SQLiteConnectionProvider::new("data/finance.db")?;
+    let transaction_repository = SQLiteTransactionRepository::new(transaction_provider);
+    let budget_repository = SQLiteBudgetRepository::new(budget_provider);
+    let transaction_service = TransactionService::new(transaction_repository);
+    let budget_service = BudgetService::new(budget_repository);
+    let app = FinanceApp::new(transaction_service, budget_service);
     cli::run(app)
 }
