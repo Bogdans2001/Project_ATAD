@@ -3,7 +3,7 @@ use anyhow::anyhow;
 
 use crate::domain::{Transaction, TransactionError, TransactionKind,Category};
 use crate::persistence::transaction_repository::{MonthlyReport, TransactionRepository, TransactionSearchFilter, CategoryReport};
-use crate::importers::read_csv_as_arrays;
+use crate::importers::{read_csv_as_arrays, read_ofx_as_arrays};
 
 
 pub struct AddTransactionCommand {
@@ -77,28 +77,29 @@ impl<R: TransactionRepository> TransactionService<R> {
 
     pub fn import(&self, option:String, path:String) -> anyhow::Result<()> {
         
-        if option == "csv" {
-            let rows = read_csv_as_arrays(&path)?;
-            for row in rows{
-                let date = NaiveDate::parse_from_str(&row[0], "%Y-%m-%d").map_err(|_| anyhow!("Invalid date"))?;
-                let amount:f64=row[1].parse().map_err(|_| anyhow!("Invalid amount"))?;
-                let kind=match row[2].as_str(){
-                    "expense"=>TransactionKind::Expense,
-                    "income"=>TransactionKind::Income,
-                    _=>return Err(anyhow!("Invalid kind")),
-                };
-                let category_id:i64=row[3].parse().map_err(|_| anyhow!("Invalid category id"))?;
-                let description = row[4].clone();
+        let rows = match option.as_str(){
+            "csv" =>read_csv_as_arrays(&path),
+            "ofx" =>read_ofx_as_arrays(&path),
+            _=>Err(anyhow!("Invalid option")),
+        }?;
+        for row in rows{
+            let date = NaiveDate::parse_from_str(&row[0], "%Y-%m-%d").map_err(|_| anyhow!("Invalid date"))?;
+            let amount:f64=row[1].parse().map_err(|_| anyhow!("Invalid amount"))?;
+            let kind=match row[2].as_str(){
+                "expense"=>TransactionKind::Expense,
+                "income"=>TransactionKind::Income,
+                _=>return Err(anyhow!("Invalid kind")),
+            };
+            let category_id:i64=row[3].parse().map_err(|_| anyhow!("Invalid category id"))?;
+            let description = row[4].clone();
 
-                let local_category_id = match category_id {
-                    0 => Category::build_category(&description).unwrap_or(1),
-                    1..12 => category_id,
-                    _ => return Err(anyhow!("Invalid category"))
-                };
-
-                let transaction = Transaction::new( date, amount, kind, local_category_id, description).map_err(|_| anyhow!("Invalid transaction"))?;
-                self.repo.insert(&transaction)?;
-            }
+            let local_category_id = match category_id {
+                0 => Category::build_category(&description).unwrap_or(1),
+                1..12 => category_id,
+                _ => return Err(anyhow!("Invalid category"))
+            };
+            let transaction = Transaction::new( date, amount, kind, local_category_id, description).map_err(|_| anyhow!("Invalid transaction"))?;
+            self.repo.insert(&transaction)?;
         }
         Ok(())
     }

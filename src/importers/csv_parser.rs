@@ -3,7 +3,7 @@ use chrono::NaiveDate;
 use anyhow::anyhow;
 use std::path::Path;
 
-fn validate_row(row: &Vec<String>) -> anyhow::Result<()> {
+pub fn validate_row(row: &Vec<String>) -> anyhow::Result<()> {
     if row.len() != 5 {
         return Err(anyhow!("Invalid number of columns".to_string()));
     }
