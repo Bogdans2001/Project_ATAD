@@ -63,9 +63,16 @@ impl<R: TransactionRepository> TransactionService<R> {
     pub fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>> {
         self.repo.search(filter)
     }
+
+    pub fn select(&self) -> anyhow::Result<Vec<Vec<String>>> {
+        self.repo.select_transaction()
+    }
+
+
     pub fn monthly_expenses(&self, date:NaiveDate, category_id:i64) -> anyhow::Result<f64> {
         self.repo.monthly_expenses(date,category_id)
     }
+    
 
     pub fn report(&self, property:String) -> anyhow::Result<ReportResult> {
         let result = match property.as_str(){

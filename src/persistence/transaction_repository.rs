@@ -18,6 +18,7 @@ pub struct CategoryReport{
 
 pub trait TransactionRepository {
     fn insert(&self, tx: &Transaction) -> anyhow::Result<()>;
+    fn select_transaction(&self) -> anyhow::Result<Vec<Vec<String>>>;
     fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>>;
     fn monthly_report(&self) -> anyhow::Result<Vec<MonthlyReport>>;
     fn category_report(&self) -> anyhow::Result<Vec<CategoryReport>>;
@@ -53,6 +54,35 @@ impl TransactionRepository for SQLiteTransactionRepository {
             params![tx.id.to_string(), tx.date.to_string(),tx.amount, kind, tx.category_id, tx.description,],
         )?;
         Ok(())
+    }
+
+    fn select_transaction(&self) -> anyhow::Result<Vec<Vec<String>>>{
+        let sql = String::from("SELECT date, amount, kind, category_id, description FROM transactions;");
+        let conn = self.provider.conn();
+        let mut stmt = conn.prepare(&sql)?;
+        let rows = stmt.query_map([], |row| {
+            let mut sql_row = Vec::new();
+            let date: String = row.get(0)?;
+            let amount: f64 = row.get(1)?;
+            let kind: String = row.get(2)?;
+            let category_id: i64 = row.get(3)?;
+            let description: String = row.get(4)?;
+
+            let amount_str:String = amount.to_string();
+            let category_id_str:String = category_id.to_string();
+
+            sql_row.push(date);
+            sql_row.push(amount_str);
+            sql_row.push(kind);
+            sql_row.push(category_id_str);
+            sql_row.push(description);
+
+            Ok(sql_row)
+        })?;
+        
+        let sql_rows:Vec<Vec<String>> = rows.filter_map(Result::ok).collect();
+        Ok(sql_rows)
+
     }
 
     fn search(&self, filter: TransactionSearchFilter) -> anyhow::Result<Vec<Transaction>> {
