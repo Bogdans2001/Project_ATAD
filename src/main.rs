@@ -3,6 +3,7 @@ mod core;
 mod persistence;
 mod cli;
 mod importers;
+mod tui;
 
 use core::transaction_service::TransactionService;
 use core::budget_service::BudgetService;
@@ -17,5 +18,7 @@ fn main() -> anyhow::Result<()> {
     let transaction_service = TransactionService::new(transaction_repository);
     let budget_service = BudgetService::new(budget_repository);
     let app = FinanceApp::new(transaction_service, budget_service);
-    cli::run(app)
+    //cli::run(app)
+    tui::run_tui()?;
+    Ok(())
 }
