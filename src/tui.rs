@@ -3,34 +3,59 @@ use std::{io, time::Duration};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::execute;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
+use crate::core::finance_app::FinanceApp;
+use crate::persistence::transaction_repository::{TransactionRepository};
+use crate::persistence::budget_repository::BudgetRepository;
 
 use ratatui::backend::CrosstermBackend;
-use ratatui::widgets::{Block, Borders, Paragraph};
+use ratatui::widgets::{Block, Borders,Cell,Row, Paragraph, Table, TableState};
 use ratatui::Terminal;
 use ratatui::layout::{Constraint, Direction, Layout};
+use ratatui::style::{Modifier, Style};
 
-use crate::domain::transaction;
-
-pub fn run_tui() -> anyhow::Result<()> {
+pub fn run_tui<TR, BR>(app: &mut FinanceApp<TR, BR>) -> anyhow::Result<()> 
+where
+    TR: TransactionRepository,
+    BR: BudgetRepository,
+{
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    let app = run_app(&mut terminal);
+    run_app(&mut terminal,app)?;
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
-
-    app
+    Ok(())
 }
 
 
-fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> anyhow::Result<()> {
+fn run_app<TR,BR>(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mut FinanceApp<TR, BR>) -> anyhow::Result<()> 
+where
+    TR: TransactionRepository,
+    BR: BudgetRepository,
+{
     let mut exit = false;
     let mut draw = true;
+    let mut fetch_data = true;
+    let mut transactions_db: Vec<Vec<String>> = Vec::new();
+    let mut table_state = TableState::default();
+    table_state.select(Some(0));
 
     while !exit {
+        if fetch_data{
+            transactions_db = app.select()?;
+            fetch_data = false;
+            draw = true;
+
+            if transactions_db.is_empty() {
+                table_state.select(None);
+                    } else {
+                        table_state.select(Some(0));
+                    }
+        }
+
         if draw {
             terminal.draw(|frame| {
                 let area = frame.area();
@@ -40,9 +65,21 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> anyhow::Res
                 let main_area = Layout::default().direction(Direction::Horizontal)
                     .constraints([Constraint::Percentage(65), Constraint::Percentage(35)]).split(vertical_area[0]);
 
-                let transactions_area = Paragraph::new("Transactions area")
-                    .block(Block::default().borders(Borders::ALL).title("Transactions"));
-                frame.render_widget(transactions_area, main_area[0]);
+                let header = Row::new(vec![Cell::from("Date"), Cell::from(format!("{:<60}", "Kind")), Cell::from(format!("{:<40}", "Amount")),])
+                    .style(Style::default().add_modifier(Modifier::BOLD));
+                
+                let rows = transactions_db.iter().map(|cols| {
+                    let date = cols.get(0).map(String::as_str).unwrap_or("");
+                    let kind = cols.get(2).map(String::as_str).unwrap_or("");
+                    let amount_str = cols.get(1).map(String::as_str).unwrap_or("");
+                    let amount:f64 = amount_str.parse().unwrap();
+
+                    Row::new(vec![Cell::from(date),Cell::from(format!("{:<60}", kind)), Cell::from(format!("{:<40.2}", amount))])
+                });
+
+                let transactions_table = Table::new(rows,[Constraint::Length(80),Constraint::Length(60),Constraint::Length(40)]).header(header).block(Block::default()
+                    .borders(Borders::ALL).title("Transactions")).highlight_style(Style::default().add_modifier(Modifier::REVERSED));
+                frame.render_stateful_widget(transactions_table, main_area[0], &mut table_state);
 
                 let transaction_details = Paragraph::new("Transaction details")
                     .block(Block::default().borders(Borders::ALL).title("Details"));
@@ -69,11 +106,12 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> anyhow::Res
                     }
                 }
                 Event::Resize(_, _) => {
+                    terminal.autoresize()?;
                     terminal.clear()?;
                     draw = true;
                 }
                 _ => {}
-    }
+            }
         }
     }
 

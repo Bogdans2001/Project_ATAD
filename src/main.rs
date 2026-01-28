@@ -17,8 +17,8 @@ fn main() -> anyhow::Result<()> {
     let budget_repository = SQLiteBudgetRepository::new(budget_provider);
     let transaction_service = TransactionService::new(transaction_repository);
     let budget_service = BudgetService::new(budget_repository);
-    let app = FinanceApp::new(transaction_service, budget_service);
+    let mut app = FinanceApp::new(transaction_service, budget_service);
     //cli::run(app)
-    tui::run_tui()?;
+    tui::run_tui(&mut app)?;
     Ok(())
 }

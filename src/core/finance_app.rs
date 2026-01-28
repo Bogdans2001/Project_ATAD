@@ -33,6 +33,11 @@ where
         Self { transaction_service, budget_service, }
     }
 
+    pub fn select(&self) -> anyhow::Result<Vec<Vec<String>>> {
+        self.transaction_service.select()
+    }
+
+
     pub fn add(&self,kind: String, date: NaiveDate, amount: f64, category_id: i64, description: String,) -> Result<(), AddTransactionError> {
 
         let local_category_id = match category_id {
