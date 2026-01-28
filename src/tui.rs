@@ -116,8 +116,21 @@ where
                 let transactions_table = Table::new(rows,[Constraint::Length(80),Constraint::Length(60),Constraint::Length(40)]).header(header).block(Block::default()
                     .borders(Borders::ALL).title("Transactions")).highlight_style(Style::default().add_modifier(Modifier::REVERSED));
                 frame.render_stateful_widget(transactions_table, main_area[0], &mut table_state);
+                
+                let details_text = match table_state.selected() {
+                    Some(row) => {
+                        let date = transactions_db[row][0].to_string();
+                        let amount_str = transactions_db[row][1].to_string();
+                        let amount:f64 = amount_str.parse().unwrap();
+                        let kind = transactions_db[row][2].to_string();
+                        let category_name = transactions_db[row][3].to_string();
+                        let description = transactions_db[row][4].to_string();
+                        format!("\n\nDate: {date}\nAmount: {:.2}\nKind: {kind}\nCategory: {category_name}\nDescription: {description}",amount)
+                    }        
+                    None => "\n\nNo transaction selected".to_string(),
+                };
 
-                let transaction_details = Paragraph::new("Transaction details")
+                let transaction_details = Paragraph::new(details_text)
                     .block(Block::default().borders(Borders::ALL).title("Details"));
                 frame.render_widget(transaction_details, main_area[1]);
 
