@@ -13,6 +13,43 @@ use ratatui::Terminal;
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Modifier, Style};
 
+
+
+
+fn move_arrow(table_state: &mut ratatui::widgets::TableState, len: usize, direction:bool){
+    if len==0 {
+        table_state.select(None);
+        return;
+    }
+    let selected_row = table_state.selected();
+    let next_row;
+    
+    if !direction{
+        next_row = match selected_row{
+            Some(row) => 
+                if row == len-1 {
+                    row
+                }else{
+                    row+1
+                },
+            None => 0
+        }
+    }else{
+        next_row = match selected_row{
+            Some(row) => 
+                if row == 0 {
+                    row
+                }else{
+                    row-1
+                },
+            None => 0
+        }
+    }
+    table_state.select(Some(next_row));
+
+}
+
+
 pub fn run_tui<TR, BR>(app: &mut FinanceApp<TR, BR>) -> anyhow::Result<()> 
 where
     TR: TransactionRepository,
@@ -41,7 +78,6 @@ where
     let mut fetch_data = true;
     let mut transactions_db: Vec<Vec<String>> = Vec::new();
     let mut table_state = TableState::default();
-    table_state.select(Some(0));
 
     while !exit {
         if fetch_data{
@@ -97,12 +133,19 @@ where
 
         if event::poll(Duration::from_millis(100))? {
             match event::read()? {
-                Event::Key(key) => {
+                Event::Key(key) if key.kind == KeyEventKind::Press => {
                     if key.code == KeyCode::Char('x') {
                         exit = true;
                     }
-                    else {
-                        draw = true;
+                    else if key.code == KeyCode::Up{
+                        move_arrow(&mut table_state, transactions_db.len(), true);
+                        draw = true;   
+                    }else if key.code == KeyCode::Down{
+                        move_arrow(&mut table_state, transactions_db.len(), false);
+                        draw = true;  
+                        
+                    }else{
+                        draw = false;
                     }
                 }
                 Event::Resize(_, _) => {
