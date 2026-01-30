@@ -5,11 +5,11 @@ storing data in SQLite, and is designed to be easily extensible.
 
 ## Features
 
-- Import transactions from CSV and OFX files *(planned)* 
+- Import transactions from CSV and OFX files 
 - Manually add **income** and **expenses**  
-- Categorize transactions automatically *(planned)*
-- Set budgets per categories and get alarms *(planned)*  
-- Generate reports such as monthly spending, category breakdown *(planned)*  
+- Categorize transactions automatically
+- Set budgets per categories and get alarms  
+- Generate reports such as monthly spending, category breakdown  
 - Search and filter transactions
 
 ## Architecture Overview
