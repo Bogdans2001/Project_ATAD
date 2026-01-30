@@ -94,8 +94,8 @@ where
                 }
                 for element in &rows{
                     println!("{}", element.month);
-                    println!("income  {}  {}", bar(element.income, maxx), element.income);
-                    println!("expense {}  {}", bar(element.expense, maxx), element.expense);
+                    println!("income  {}  {:.2}", bar(element.income, maxx), element.income);
+                    println!("expense {}  {:.2}", bar(element.expense, maxx), element.expense);
                     println!();
                 }
             }
@@ -108,7 +108,7 @@ where
                     }
                 }
                 for element in &rows{
-                    println!("{:<20} {} {:>10}", element.name, bar(element.amount, maxx), element.amount);
+                    println!("{:<20} {} {:>10.2}", element.name, bar(element.amount, maxx), element.amount);
                 }
             }
         }
