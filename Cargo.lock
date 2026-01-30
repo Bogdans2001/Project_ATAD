@@ -354,6 +354,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7360491ce676a36bf9bb3c56c1aa791658183a54d2744120f27285738d90465a"
 
 [[package]]
+name = "finance_app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "crossterm 0.28.1",
+ "csv",
+ "quick-xml",
+ "ratatui",
+ "regex",
+ "rusqlite",
+ "serde",
+ "thiserror",
+ "tui-textarea",
+ "uuid",
+]
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -621,25 +640,6 @@ name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
-
-[[package]]
-name = "personal_finance_cli_manager"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "crossterm 0.28.1",
- "csv",
- "quick-xml",
- "ratatui",
- "regex",
- "rusqlite",
- "serde",
- "thiserror",
- "tui-textarea",
- "uuid",
-]
 
 [[package]]
 name = "pkg-config"
