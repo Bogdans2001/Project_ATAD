@@ -96,7 +96,7 @@ where
             terminal.draw(|frame| {
                 let area = frame.area();
                 let vertical_area = Layout::default().direction(Direction::Vertical)
-                    .constraints([Constraint::Min(5), Constraint::Length(3), Constraint::Length(1),]).split(area);
+                    .constraints([Constraint::Min(5), Constraint::Length(1),]).split(area);
 
                 let main_area = Layout::default().direction(Direction::Horizontal)
                     .constraints([Constraint::Percentage(65), Constraint::Percentage(35)]).split(vertical_area[0]);
@@ -134,12 +134,8 @@ where
                     .block(Block::default().borders(Borders::ALL).title("Details"));
                 frame.render_widget(transaction_details, main_area[1]);
 
-                let cmd_area = Paragraph::new("Input command area")
-                    .block(Block::default().borders(Borders::ALL).title("Command"));
-                frame.render_widget(cmd_area, vertical_area[1]);
-
-                let status = Paragraph::new("Status area, press x to exit");
-                frame.render_widget(status, vertical_area[2]);
+                let status = Paragraph::new("Press x to exit");
+                frame.render_widget(status, vertical_area[1]);
             })?;
             draw = false;
         }

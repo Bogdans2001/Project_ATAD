@@ -5,6 +5,7 @@ use crate::core::finance_app::FinanceApp;
 use crate::core::transaction_service::AddTransactionError;
 use crate::persistence::transaction_repository::{TransactionRepository,TransactionSearchFilter};
 use crate::persistence::budget_repository::BudgetRepository;
+use crate::tui::run_tui;
 
 #[derive(Parser)]
 #[command(name = "finance_manager")]
@@ -46,10 +47,13 @@ enum Commands {
     Import {
         #[arg(long)] option: String,
         #[arg(long)] path: String,
+    },
+
+    Tui {
     }
 }
 
-pub fn run<TR, BR>(app: FinanceApp<TR, BR>) -> anyhow::Result<()>
+pub fn run<TR, BR>(app: &mut FinanceApp<TR, BR>) -> anyhow::Result<()>
 where
     TR: TransactionRepository,
     BR: BudgetRepository,
@@ -147,6 +151,10 @@ where
         Commands::Import {option, path} => {
             app.import(option,path)?;
             println!("Import added!");
+        }
+
+        Commands::Tui{} => {
+            run_tui(app)?;
         }
 
 
