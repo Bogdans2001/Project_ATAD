@@ -1,0 +1,10 @@
+﻿date,amount,type,category_id,description
+2025-09-23,50,expense,0,netflix
+2025-09-27,50.2,income,0,salary
+2025-09-28,10.3,expense,0,transport
+2025-09-23,10,expense,0,fuel
+2025-09-27,10.2,income,0,salary
+2025-09-28,15.3,expense,0,wardrobe
+2025-09-23,17,expense,0,netflix
+2025-09-27,20.2,income,0,salary
+2025-09-28,32.3,expense,0,youtube

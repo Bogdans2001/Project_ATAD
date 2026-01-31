@@ -87,6 +87,9 @@ finance_app report --property monthly
 finance_app report --property category
 finance_app tui
 ```
+
+For input file format, please check the examples from [/docs/example_inputs](https://github.com/Bogdans2001/Project_ATAD/tree/main/docs/example_inputs).
+
 ### Expected outputs
 
 ![CLI commands](docs/screenshots/outputs.jpeg)
